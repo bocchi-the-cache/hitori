@@ -2,9 +2,10 @@ package cache
 
 import (
 	"fmt"
-	"github.com/dgraph-io/badger/v4"
 	"log"
 	"testing"
+
+	"github.com/dgraph-io/badger/v4"
 )
 
 // NOTE: BadgerDB is definitely **NOT** a cache storage engine.
