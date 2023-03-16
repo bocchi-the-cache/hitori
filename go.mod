@@ -3,7 +3,7 @@ module github.com/bocchi-the-cache/hitori
 go 1.20
 
 require (
-	github.com/anqur/yasch v0.2.0
+	github.com/anqur/yasch v0.3.0
 	github.com/dgraph-io/badger/v4 v4.0.1
 	go.uber.org/zap v1.24.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1

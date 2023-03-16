@@ -1,57 +1,6 @@
 package config
 
-import (
-	"time"
-
-	"github.com/alecthomas/units"
-	"github.com/invopop/jsonschema"
-)
-
-type Duration struct{ Dur time.Duration }
-
-func (Duration) JSONSchema() *jsonschema.Schema {
-	return &jsonschema.Schema{
-		Type:        "string",
-		Title:       "Duration",
-		Description: "Go-compatible duration",
-	}
-}
-
-func (d Duration) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var s string
-	if err := unmarshal(&s); err != nil {
-		return err
-	}
-	dur, err := time.ParseDuration(s)
-	if err != nil {
-		return err
-	}
-	d.Dur = dur
-	return nil
-}
-
-type Size struct{ Size units.Base2Bytes }
-
-func (Size) JSONSchema() *jsonschema.Schema {
-	return &jsonschema.Schema{
-		Type:        "string",
-		Title:       "Size",
-		Description: "Go-compatible data size",
-	}
-}
-
-func (s Size) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var r string
-	if err := unmarshal(&r); err != nil {
-		return err
-	}
-	size, err := units.ParseBase2Bytes(r)
-	if err != nil {
-		return err
-	}
-	s.Size = size
-	return nil
-}
+import "github.com/anqur/yasch/pkg/types"
 
 type Config struct {
 	Server  Server  `yaml:"server" json:"server" jsonschema:"required"`
@@ -67,22 +16,22 @@ type Server struct {
 
 type Connection struct {
 	Client struct {
-		MaxConnIdleDuration Duration `yaml:"max_conn_idle_duration" json:"max_conn_idle_duration" jsonschema:"required"`
+		MaxConnIdleDuration types.Duration `yaml:"max_conn_idle_duration" json:"max_conn_idle_duration" jsonschema:"required"`
 	} `yaml:"client" json:"client" jsonschema:"required"`
 	Origin struct {
-		ConnectTimeout Duration `yaml:"connect_timeout" json:"connect_timeout" jsonschema:"required"`
-		ReadTimeout    Duration `yaml:"read_timeout" json:"read_timeout" jsonschema:"required"`
-		ConnPoolSize   int      `yaml:"conn_pool_size" json:"conn_pool_size" jsonschema:"required"`
-		MaxReadBufSize Size     `yaml:"max_read_buf_size" json:"max_read_buf_size" jsonschema:"required"`
+		ConnectTimeout types.Duration `yaml:"connect_timeout" json:"connect_timeout" jsonschema:"required"`
+		ReadTimeout    types.Duration `yaml:"read_timeout" json:"read_timeout" jsonschema:"required"`
+		ConnPoolSize   int            `yaml:"conn_pool_size" json:"conn_pool_size" jsonschema:"required"`
+		MaxReadBufSize types.Size     `yaml:"max_read_buf_size" json:"max_read_buf_size" jsonschema:"required"`
 	} `yaml:"origin" json:"origin" jsonschema:"required"`
 }
 
 type Log struct {
-	Level       int      `yaml:"level" json:"level" jsonschema:"required"`
-	Path        string   `yaml:"path" json:"path" jsonschema:"required"`
-	MaxAge      int      `yaml:"max_age" json:"max_age" jsonschema:"required"`
-	CutDuration Duration `yaml:"cut_duration" json:"cut_duration" jsonschema:"required"`
-	CutSize     Size     `yaml:"cut_size" json:"cut_size" jsonschema:"required"`
+	Level       int            `yaml:"level" json:"level" jsonschema:"required"`
+	Path        string         `yaml:"path" json:"path" jsonschema:"required"`
+	MaxAge      int            `yaml:"max_age" json:"max_age" jsonschema:"required"`
+	CutDuration types.Duration `yaml:"cut_duration" json:"cut_duration" jsonschema:"required"`
+	CutSize     types.Size     `yaml:"cut_size" json:"cut_size" jsonschema:"required"`
 }
 
 type Mapping struct {
@@ -116,9 +65,9 @@ type OriginSource struct {
 }
 
 type Cache struct {
-	Enabled   bool     `yaml:"enabled" json:"enabled" jsonschema:"required"`
-	SliceSize Size     `yaml:"slice_size" json:"slice_size" jsonschema:"required"`
-	TTL       Duration `yaml:"ttl" json:"ttl" jsonschema:"required"`
+	Enabled   bool           `yaml:"enabled" json:"enabled" jsonschema:"required"`
+	SliceSize types.Size     `yaml:"slice_size" json:"slice_size" jsonschema:"required"`
+	TTL       types.Duration `yaml:"ttl" json:"ttl" jsonschema:"required"`
 	//Ram             CacheRam  `yaml:"ram"`
 	Disk CacheDisk `yaml:"disk" json:"disk" jsonschema:"required"`
 }
@@ -129,8 +78,8 @@ type CacheDisk struct {
 }
 
 type CacheDiskDevice struct {
-	Path string `yaml:"path" json:"path" jsonschema:"required"`
-	Size Size   `yaml:"size" json:"size" jsonschema:"required"`
+	Path string     `yaml:"path" json:"path" jsonschema:"required"`
+	Size types.Size `yaml:"size" json:"size" jsonschema:"required"`
 }
 
 //type CacheRam struct {
