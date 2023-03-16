@@ -1,6 +1,9 @@
 .DS_Store
-/.idea/
+/.idea/*
 /.vscode/
+
+!.idea/jsonSchemas.xml
+*.schema.json
 
 # Binaries for programs and plugins
 *.exe
