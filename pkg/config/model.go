@@ -61,6 +61,7 @@ type Domain struct {
 type OriginSource struct {
 	OriginName string   `yaml:"origin_name" json:"origin_name" jsonschema:"required"`
 	Protocol   string   `yaml:"protocol" json:"protocol" jsonschema:"required"`
+	OriginHost string   `yaml:"origin_host" json:"origin_host"`
 	Nodes      []string `yaml:"nodes" json:"nodes" jsonschema:"required"`
 }
 
