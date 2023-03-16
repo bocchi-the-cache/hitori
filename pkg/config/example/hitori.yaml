@@ -1,0 +1,35 @@
+server:
+  port: 8080
+  connection:
+    client:
+      max_conn_idle_duration: 3m
+    origin:
+      connect_timeout: 15s
+      read_timeout: 3s
+      conn_pool_size: 100
+      max_read_buf_size: 1MiB
+log:
+  level: 2
+  path: "/var/log/hitori.log"
+  max_age: 7
+  cut_duration: 1440m
+  cut_size: 100MiB
+mapping:
+  domains:
+    - domain_name: "example.com"
+      origins: "default"
+      cache_config:
+        enabled: true
+  origin_sources:
+    - origin_name: "default"
+      protocol: "http"
+      nodes:
+        - "http://127.0.0.1:8000"
+cache:
+  enabled: true
+  slice_size: 1024KiB
+  ttl: 1h
+  disk:
+    devices:
+      - path: "/var/cache/proxy"
+        size: 500MiB
