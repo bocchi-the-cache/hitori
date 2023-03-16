@@ -2,6 +2,8 @@ module github.com/bocchi-the-cache/hitori
 
 go 1.20
 
+require github.com/dgraph-io/badger/v4 v4.0.1
+
 require (
 	github.com/dgraph-io/badger/v4 v4.0.1
 	go.uber.org/zap v1.24.0
