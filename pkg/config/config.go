@@ -28,6 +28,6 @@ func Init(configFile string) {
 	if err = yaml.Unmarshal(f, &Cfg); err != nil {
 		logger.Panic("Parse config file failed: ", err)
 	}
-
+	logger.Info("config file parsed successfully: ", configFile)
 	return
 }

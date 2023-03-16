@@ -19,9 +19,9 @@ var log *zap.SugaredLogger
 
 var logLevel = zap.NewAtomicLevel()
 
-func Init() {
-	SetLevel(configLevel["info"])
-	filePath := getFilePath()
+func Init(path string) {
+	SetLevel(configLevel["debug"])
+	filePath := path
 
 	fmt.Println("[INFO] logger init filePath: ", filePath)
 
