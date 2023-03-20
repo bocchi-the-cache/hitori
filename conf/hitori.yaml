@@ -24,6 +24,10 @@ mapping:
       origins: "baidu"
       cache_config:
         enabled: true
+    - domain_name: "localhost:8080"
+      origins: "zdfmcnet"
+      cache_config:
+        enabled: true
   origin_sources:
     - origin_name: "default"
       protocol: "http"
@@ -34,6 +38,11 @@ mapping:
       origin_host: "www.baidu.com"
       nodes:
         - "www.baidu.com"
+    - origin_name: "zdfmcnet"
+      protocol: "https"
+      origin_host: "zdfmc.net"
+      nodes:
+        - "zdfmc.net"
 cache:
   enabled: true
   slice_size: 1024KiB
