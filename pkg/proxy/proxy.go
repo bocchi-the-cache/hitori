@@ -2,11 +2,15 @@ package proxy
 
 import (
 	"fmt"
+
+	"github.com/valyala/fasthttp"
+
 	"github.com/bocchi-the-cache/hitori/pkg/config"
 	"github.com/bocchi-the-cache/hitori/pkg/logger"
 	"github.com/bocchi-the-cache/hitori/pkg/origin"
-	"github.com/valyala/fasthttp"
 )
+
+const ServerToken = "hitori-cache-server"
 
 var DefaultProxy *HttpProxy
 
@@ -33,18 +37,18 @@ func (p *HttpProxy) Serve() error {
 // NewHttpProxy
 // TODO: use buildOption to support complex proxy settings
 func NewHttpProxy(port int, ori *origin.Origin) *HttpProxy {
-	p := &HttpProxy{}
+	p := new(HttpProxy)
 	p.ListenAddr = fmt.Sprintf(":%d", port)
 	p.s = &fasthttp.Server{
 		Handler: p.ProxyHandler,
-		Name:    "hitori-cache-server",
+		Name:    ServerToken,
 	}
 	p.o = ori
 	return p
 }
 
 func (p *HttpProxy) ProxyHandler(ctx *fasthttp.RequestCtx) {
-	logger.Debugf("recieve client request uri: %v", ctx.Request.URI())
-	ctx.Response.Header.Add("X-Proxy", "hitori-cache-server")
+	logger.Debugf("receive client request uri: %v", ctx.Request.URI())
+	ctx.Response.Header.Add("X-Proxy", ServerToken)
 	p.o.ServeProxyHTTP(ctx)
 }
