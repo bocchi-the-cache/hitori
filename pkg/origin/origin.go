@@ -2,9 +2,11 @@ package origin
 
 import (
 	"fmt"
+
+	"github.com/valyala/fasthttp"
+
 	"github.com/bocchi-the-cache/hitori/pkg/config"
 	"github.com/bocchi-the-cache/hitori/pkg/logger"
-	"github.com/valyala/fasthttp"
 )
 
 var DefaultOrigin *Origin
@@ -16,7 +18,7 @@ func Init(mapCfg *config.Mapping) {
 
 func NewOrigin(mapCfg *config.Mapping) *Origin {
 	return &Origin{
-		c:  &fasthttp.Client{},
+		c:  new(fasthttp.Client),
 		mp: buildOriginMapping(mapCfg),
 	}
 }
