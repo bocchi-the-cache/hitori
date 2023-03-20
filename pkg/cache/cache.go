@@ -1,6 +1,9 @@
 package cache
 
-import "github.com/dgraph-io/badger/v4"
+import (
+	"github.com/bocchi-the-cache/hitori/pkg/config"
+	"github.com/dgraph-io/badger/v4"
+)
 
 // NOTE: BadgerDB is definitely **NOT** a cache storage engine.
 // But we use it as k-v storage in our kick-start project.
@@ -15,7 +18,7 @@ type Cache interface {
 	Set(key string, value []byte) error
 }
 
-var defaultCache Cache
+var DefaultCache Cache
 
 type StorageCache struct {
 	db *badger.DB
@@ -25,15 +28,14 @@ func NewStorageCache(db *badger.DB) *StorageCache {
 	return &StorageCache{db: db}
 }
 
-func Init() error {
+func Init(config *config.Config) error {
 	opts := badger.DefaultOptions("/tmp/badger")
 	db, err := badger.Open(opts)
 	if err != nil {
 		return err
 	}
 
-	c := NewStorageCache(db)
-	defaultCache = c
+	DefaultCache = NewStorageCache(db)
 	return nil
 }
 
@@ -68,13 +70,13 @@ func (c *StorageCache) Set(key string, value []byte) error {
 }
 
 func Del(key string) error {
-	return defaultCache.Del(key)
+	return DefaultCache.Del(key)
 }
 
 func Get(key string) ([]byte, error) {
-	return defaultCache.Get(key)
+	return DefaultCache.Get(key)
 }
 
 func Set(key string, value []byte) error {
-	return defaultCache.Set(key, value)
+	return DefaultCache.Set(key, value)
 }
