@@ -1,11 +1,11 @@
 package main
 
 import (
+	"github.com/bocchi-the-cache/hitori/internal/proxies"
 	"github.com/bocchi-the-cache/hitori/pkg/cache"
 	"github.com/bocchi-the-cache/hitori/pkg/config"
 	"github.com/bocchi-the-cache/hitori/pkg/logger"
 	"github.com/bocchi-the-cache/hitori/pkg/origin"
-	"github.com/bocchi-the-cache/hitori/pkg/proxy"
 )
 
 func main() {
@@ -16,9 +16,9 @@ func main() {
 		panic(err)
 	}
 	origin.Init(&config.Cfg.Mapping)
-	proxy.Init(&config.Cfg)
+	proxies.Init(&config.Cfg)
 
-	if err := proxy.Serve(); err != nil {
+	if err := proxies.Serve(); err != nil {
 		panic(err)
 	}
 }

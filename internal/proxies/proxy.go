@@ -1,13 +1,14 @@
-package proxy
+package proxies
 
 import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/bocchi-the-cache/hitori/pkg/cache"
-	"github.com/valyala/fasthttp"
 	"net/http"
 
+	"github.com/valyala/fasthttp"
+
+	"github.com/bocchi-the-cache/hitori/pkg/cache"
 	"github.com/bocchi-the-cache/hitori/pkg/config"
 	"github.com/bocchi-the-cache/hitori/pkg/logger"
 	"github.com/bocchi-the-cache/hitori/pkg/origin"
@@ -15,34 +16,29 @@ import (
 
 const ServerToken = "hitori-cache-server"
 
-var DefaultProxy *HttpProxy
+var DefaultProxy *Proxy
 
 func Init(config *config.Config) {
-	DefaultProxy = NewHttpProxy(config.Server.Port, cache.DefaultCache, origin.DefaultOrigin)
-	logger.Info("proxy init successfully", DefaultProxy.ListenAddr)
+	DefaultProxy = NewProxy(config.Server.Port, cache.DefaultCache, origin.DefaultOrigin)
+	logger.Info("proxy init successfully", DefaultProxy.addr)
 }
 
 func Serve() error {
 	return DefaultProxy.Serve()
 }
 
-type HttpProxy struct {
-	ListenAddr string
-	s          *fasthttp.Server
-	c          cache.Cache
-	o          *origin.Origin
+type Proxy struct {
+	addr string
+	s    *fasthttp.Server
+	c    cache.Cache
+	o    *origin.Origin
 }
 
-func (p *HttpProxy) Serve() error {
-	logger.Info("proxy server start", p.ListenAddr)
-	return p.s.ListenAndServe(p.ListenAddr)
-}
-
-// NewHttpProxy
-// TODO: use buildOption to support complex proxy settings
-func NewHttpProxy(port int, ca cache.Cache, ori *origin.Origin) *HttpProxy {
-	p := new(HttpProxy)
-	p.ListenAddr = fmt.Sprintf(":%d", port)
+// NewProxy
+// TODO: use buildOption to support complex proxies settings
+func NewProxy(port int, ca cache.Cache, ori *origin.Origin) *Proxy {
+	p := new(Proxy)
+	p.addr = fmt.Sprintf(":%d", port)
 	p.s = &fasthttp.Server{
 		Handler: p.ProxyHandler,
 		Name:    ServerToken,
@@ -52,7 +48,14 @@ func NewHttpProxy(port int, ca cache.Cache, ori *origin.Origin) *HttpProxy {
 	return p
 }
 
-func (p *HttpProxy) ProxyHandler(ctx *fasthttp.RequestCtx) {
+func (p *Proxy) ListenAddr() string { return p.addr }
+
+func (p *Proxy) Serve() error {
+	logger.Info("proxy server start", p.addr)
+	return p.s.ListenAndServe(p.addr)
+}
+
+func (p *Proxy) ProxyHandler(ctx *fasthttp.RequestCtx) {
 	logger.Debugf("receive client request uri: %v", ctx.Request.URI())
 	ctx.Response.Header.Add("X-Proxy", ServerToken)
 
@@ -66,7 +69,7 @@ func (p *HttpProxy) ProxyHandler(ctx *fasthttp.RequestCtx) {
 
 }
 
-func (p *HttpProxy) ServeByCache(ctx *fasthttp.RequestCtx) error {
+func (p *Proxy) ServeByCache(ctx *fasthttp.RequestCtx) error {
 	headerKey := ctx.Request.URI().String() + "_header"
 	HeaderData, err := p.c.Get(headerKey)
 
@@ -107,7 +110,7 @@ func (p *HttpProxy) ServeByCache(ctx *fasthttp.RequestCtx) error {
 	return nil
 }
 
-func (p *HttpProxy) ServeByOrigin(ctx *fasthttp.RequestCtx) error {
+func (p *Proxy) ServeByOrigin(ctx *fasthttp.RequestCtx) error {
 	// MISS
 	// TODO: process error in one place
 	p.o.ServeProxyHTTP(ctx)

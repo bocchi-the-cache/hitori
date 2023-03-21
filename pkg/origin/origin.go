@@ -2,11 +2,11 @@ package origin
 
 import (
 	"fmt"
-	"github.com/bocchi-the-cache/hitori/pkg/cache"
 	"time"
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/bocchi-the-cache/hitori/pkg/cache"
 	"github.com/bocchi-the-cache/hitori/pkg/config"
 	"github.com/bocchi-the-cache/hitori/pkg/logger"
 )
