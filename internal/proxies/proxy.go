@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/pkg/errors"
 	"net/http"
 
 	"github.com/valyala/fasthttp"
@@ -62,11 +63,30 @@ func (p *Proxy) ProxyHandler(ctx *fasthttp.RequestCtx) {
 	// TODO: map use buffer instead of []byte
 	// TODO: cache key management
 
-	err := p.ServeByCache(ctx)
+	err := p.ServeMux(ctx)
 	if err != nil {
 		logger.Errorf("cache serve error: %v", err)
 	}
 
+}
+
+// ServeMux a muxer to decide which source(origin/cache) to serve client
+func (p *Proxy) ServeMux(ctx *fasthttp.RequestCtx) error {
+	// TODO: complete conditions and purge...
+	// to find cache
+	if string(ctx.Request.Header.Method()) == "PURGE" {
+		goto purgeCache
+	}
+	if string(ctx.Request.Header.Method()) != "GET" {
+		goto directOrigin
+	}
+	return p.ServeByCache(ctx)
+
+directOrigin:
+	return p.ServeByOrigin(ctx)
+
+purgeCache:
+	return p.PurgeCache(ctx)
 }
 
 func (p *Proxy) ServeByCache(ctx *fasthttp.RequestCtx) error {
@@ -115,5 +135,27 @@ func (p *Proxy) ServeByOrigin(ctx *fasthttp.RequestCtx) error {
 	// TODO: process error in one place
 	p.o.ServeProxyHTTP(ctx)
 	ctx.Response.Header.Set("X-Cache", "MISS")
+	return nil
+}
+
+func (p *Proxy) PurgeCache(ctx *fasthttp.RequestCtx) error {
+	//TODO: 404 for not found, 200 for purged
+	bodyKey := ctx.Request.URI().String() + "_body"
+	err := p.c.Del(bodyKey)
+	if err != nil {
+		errw := errors.Wrapf(err, "purge cache error, key: %v", bodyKey)
+		ctx.Error(errw.Error(), http.StatusInternalServerError)
+		return errw
+	}
+	// TODO: checksum when serve, in case of **header not deleted** while **body deleted**
+	headerKey := ctx.Request.URI().String() + "_header"
+	err = p.c.Del(headerKey)
+	if err != nil {
+		errw := errors.Wrapf(err, "purge cache error, key: %v", headerKey)
+		ctx.Error(errw.Error(), http.StatusInternalServerError)
+		return errw
+	}
+
+	ctx.SuccessString("text/plain", fmt.Sprintf("purge cache success, uri: %v", ctx.Request.URI()))
 	return nil
 }

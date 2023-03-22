@@ -2,6 +2,7 @@ package cache
 
 import (
 	"fmt"
+	"github.com/bocchi-the-cache/hitori/pkg/config"
 	"log"
 	"testing"
 
@@ -71,7 +72,7 @@ func TestBadgerDB(t *testing.T) {
 }
 
 func TestCachePublicFunction(t *testing.T) {
-	err := Init()
+	err := Init(&config.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}

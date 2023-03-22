@@ -2,6 +2,7 @@ package origin
 
 import (
 	"fmt"
+	"github.com/bocchi-the-cache/hitori/pkg/utils"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -38,17 +39,17 @@ func (o *Origin) ServeProxyHTTP(ctx *fasthttp.RequestCtx) {
 	u := ctx.URI()
 	d, ok := o.mp.DomainMap[string(u.Host())]
 	if !ok {
-		SetCtxErrorWithLog(ctx, fmt.Errorf("proxy domain not found: %v", string(u.Host())), fasthttp.StatusInternalServerError)
+		utils.SetCtxErrorWithLog(ctx, fmt.Errorf("proxy domain not found: %v", string(u.Host())), fasthttp.StatusInternalServerError)
 		return
 	}
 	ori, ok := o.mp.OriginMap[d.Origins]
 	if !ok {
-		SetCtxErrorWithLog(ctx, fmt.Errorf("origin name not found: %v", string(d.Origins)), fasthttp.StatusInternalServerError)
+		utils.SetCtxErrorWithLog(ctx, fmt.Errorf("origin name not found: %v", string(d.Origins)), fasthttp.StatusInternalServerError)
 		return
 	}
 	node, err := SelectRandomNode(ori)
 	if err != nil {
-		SetCtxErrorWithLog(ctx, err, fasthttp.StatusInternalServerError)
+		utils.SetCtxErrorWithLog(ctx, err, fasthttp.StatusInternalServerError)
 		return
 	}
 	logger.Debugf("origin select, origin node: %v, uri: %v", ori.OriginName+node, u)
@@ -67,26 +68,23 @@ func (o *Origin) ServeProxyHTTP(ctx *fasthttp.RequestCtx) {
 	resp := fasthttp.AcquireResponse()
 	err = o.c.Do(oriRequest, resp)
 	if err != nil {
-		SetCtxErrorWithLog(ctx, err, fasthttp.StatusServiceUnavailable)
+		utils.SetCtxErrorWithLog(ctx, err, fasthttp.StatusServiceUnavailable)
 		return
 	}
 	logger.Debugf("do origin finished, header: %v, uri: %v", string(resp.Header.Header()), u)
 
 	resp.Header.Set("X-Cache-Timestamp", fmt.Sprintf("%v", time.Now()))
-	header := resp.Header.Header()
-	body := resp.Body()
 
+	// TODO: too much mem copy
+	respToCache := fasthttp.AcquireResponse()
+	resp.CopyTo(respToCache)
 	// copy response header and body to cache
-	ProduceCache(ctx, o.cache, header, body)
-
+	if isResponseOKToCache(resp) {
+		ProduceCache(ctx, o.cache, respToCache.Header.Header(), respToCache.Body())
+	}
 	// copy response header and body to client
 	resp.Header.CopyTo(&ctx.Response.Header)
-	ctx.Response.SetBody(body)
-}
-
-func SetCtxErrorWithLog(ctx *fasthttp.RequestCtx, err error, status int) {
-	logger.Error(err.Error())
-	ctx.Error(err.Error(), status)
+	ctx.Response.SetBody(resp.Body())
 }
 
 // ProduceCache TODO: process header/body in pkg `cache`
