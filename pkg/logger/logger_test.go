@@ -9,7 +9,7 @@ func TestLogger(t *testing.T) {
 			t.Logf("panic (by panicf) recover: %v", err)
 		}
 	}()
-	Init()
+	Init("/tmp/log_test.log")
 	Infof("hello world")
 	Warnf("warn %s", "world")
 	Errorf("error %s", "world")
