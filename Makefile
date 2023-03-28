@@ -20,7 +20,7 @@ universal:
 	@rm -f ${BIN}_amd64 ${BIN}_arm64
 
 test:
-	@$(GO) test ./internal/repo/repo_test
+	@$(GO) test ./...
 
 clean:
 	@$(GO) clean ./...
